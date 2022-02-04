@@ -1,11 +1,13 @@
 import numpy as np
-from scipy.special import gamma, spence
+from scipy.special import gamma, loggamma, spence
 
 ALPHA = 1/137.036
 PROTON_MASS_C2 = 938.272
 NEUTRON_MASS_C2 = 939.565
 ELECTRON_MASS_C2 = 0.511
 NUCLEON_MASS_C2 = (PROTON_MASS_C2+NEUTRON_MASS_C2)/2
+GA = 1.27
+GM = 4.706
 
 def phase_space(W, W0):
     return np.sqrt(W**2-1)*(W-W0)**2*W
@@ -87,8 +89,8 @@ def radiative_correction_o2(Z, W, R):
             *(1-np.pi/(2*np.sqrt(10))*L/M))
 
     d3 = (3/(np.sqrt(10)*np.pi)
-            *gA
-            *gM
+            *GA
+            *GM
             *L/M
             *(gE-1+0.5*np.log(10)+np.log(M/L)+np.pi/(4*np.sqrt(10)*L/M)))
 
@@ -214,10 +216,54 @@ def shape_factor_gamow_teller(Z, W, W0, R, A, b, c, d, L):
             -233/630*(ALPHA*Z)**2)
     C1 = (bt*4/3*b*M/c
             +4/9*W0*R**2*(1-L/10)
-            -4/7¨*ALPHA*Z*R*(1-L/10))
+            -4/7*ALPHA*Z*R*(1-L/10))
     Cm1 = (-1/3/M/c*(2*bt*b+d)
             -2/45*W0*R**2*(1-L)
             -ALPHA*Z*R/70)
     C2 = -4/9*R**2*(1-L/10)
 
     return 1 + C0 + C1*W + Cm1/W + C2*W**2
+
+def atomic_screening(Z, W, R, l):
+    beta_type = Z/abs(Z)
+
+    S = np.ones(W.shape)
+    X = np.ones(W.shape)
+    mask = (W>1)
+
+    W = W[mask]
+
+    p = np.sqrt(W**2-1)
+    Wt = W - beta_type * 0.5 * ALPHA * (abs(Z)-beta_type)*l
+
+    pt = (0.5*p
+            +0.5*np.sqrt(p**2-2*ALPHA*Z*Wt*l+0.j))
+
+    y = ALPHA*Z*W/p
+    yt = ALPHA*Z*Wt/pt
+    g = np.sqrt(1-(ALPHA*Z)**2)
+
+    S[mask] = (np.abs(gamma(g+1.j*yt))**2/np.abs(gamma(g+1.j*y))**2
+           # *np.abs(np.exp(loggamma(g+2.j*pt/l)))**2/np.abs(np.exp(loggamma(1+2.j*p/l)))**2
+            *np.abs(gamma(g+1.j*2*pt/l))**2/np.abs(gamma(1+1.j*2*p/l))**2
+            *np.exp(-np.pi*y)
+            *np.power(2*p/l, 2*(1-g)))
+
+    return X*S
+
+
+def atomic_mismatch(Z, W, W0, A):
+    beta_type = Z/abs(Z)
+    dBdZ2 = (44.200 * np.power(Z - beta_type, 0.41)
+            +2.3196e-7 * np.power(Z - beta_type, 4.45))
+    K = -0.872 + 1.270 * np.power(abs(Z), 0.097) + 9.062e-11 * np.power(abs(Z), 4.5)
+    beta = np.sqrt(W**2-1)/W
+    l = 1.83E-3 * K * Z / beta
+    M = A * NUCLEON_MASS_C2/ELECTRON_MASS_C2
+    vR = np.sqrt(1 - M * M / (M * M + (W0 * W0 - 1) / 4.))
+    psi2 = 1 + 2 * ALPHA / beta * (np.arctan(1 / l) - l / 2 / (1 + l * l))
+    C0 = -ALPHA**3*Z / beta * l / (1 + l * l) / psi2 #CHECK ALPHA power
+    C1 = (2*ALPHA**2*Z * vR / beta
+            *((0.5 + l * l) / (1 + l * l) - l * np.arctan(1 / l)) / psi2)
+
+    return 1 - 2 / (W0 - W) * (0.5 * dBdZ2 + 2 * (C0 + C1))
