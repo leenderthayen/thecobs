@@ -249,6 +249,12 @@ def atomic_screening(Z, W, R, l):
             *np.exp(-np.pi*y)
             *np.power(2*p/l, 2*(1-g)))
 
+    X[mask] = (1/(1+0.25*(l/p)**2)
+            *(1+1/8*(Wt+g)/Wt*(l/p)**2
+                +0.5*g**2/(1+np.sqrt(1-ALPHA*Z*l/(W+1)))**2
+                *(W-1)/Wt*(l/p)**2
+                *(1-1/8*(1-g)/g*(l/p)**2)))
+
     return X*S
 
 
