@@ -1,22 +1,33 @@
 import numpy as np
 from scipy.special import gamma, loggamma, spence
+from scipy.special import factorial, factorial2
 
-ALPHA = 1/137.036
-PROTON_MASS_C2 = 938.272
-NEUTRON_MASS_C2 = 939.565
-ELECTRON_MASS_C2 = 0.511
-NUCLEON_MASS_C2 = (PROTON_MASS_C2+NEUTRON_MASS_C2)/2
-GA = 1.27
-GM = 4.706
+from .coulomb_functions import lambda_k
+
+from .constants import *
 
 def phase_space(W, W0):
+    """Phase space
+
+    :param W: Electron energy in iunits of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+
+    """
     return np.sqrt(W**2-1)*(W-W0)**2*W
 
 def fermi_function(Z, W, R):
-    if Z == 0:
-        return 1
+    """Traditional Fermi Function
 
-    f = np.zeros(W.shape)
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param R: Nuclear radius in units of the electron Compton wavelength
+
+    """
+    f = np.ones(W.shape)
+
+    if Z == 0:
+        return f
+
     mask = (W>1)
     W = W[mask]
 
@@ -25,6 +36,8 @@ def fermi_function(Z, W, R):
     y = ALPHA*Z*W/p
 
     #We use the traditional Fermi function, i.e. a prefactor 4 instead of 2(1+gamma)
+    #This is consistent with the L0 description below
+
     f[mask] = (4
             *np.power(2*p*R, 2*(g-1))
             *np.exp(np.pi*y)
@@ -33,12 +46,27 @@ def fermi_function(Z, W, R):
     return f
 
 def finite_size_L0(Z, W, R):
+    """ Dominant electrostatic finite size correction
+    Correction to the traditional Fermi function to use a uniformly charged sphere rather than point charge
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param R: Nuclear radius in units of the electron Compton wavelength
+
+    """
     return (1
             -ALPHA*Z*W*R
             +13/60*(ALPHA*Z)**2
             -ALPHA*Z*R/W)
 
 def finite_size_U_fermi(Z, W):
+    """Higher-order electrostatic finite size correction
+    Change from uniformly charged sphere to Fermi-type charge distribution
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+
+    """
     p = np.sqrt(W**2-1)
 
     a0 = (-5.6e-5
@@ -54,6 +82,12 @@ def finite_size_U_fermi(Z, W):
     return 1+a0+a1*p+a2*p**2
 
 def sirlin_g(W, W0):
+    """Sirlin's g function for order alpha radiative corrections
+
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+
+    """
     g = np.zeros(W.shape)
     mask = (W > 1) & (W<W0)
     W = W[mask]
@@ -69,11 +103,24 @@ def sirlin_g(W, W0):
     return g
 
 def radiative_correction_o1(W, W0):
+    """ Order alpha radiative correction to the beta spectrum shape
+
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+
+    """
     g = sirlin_g(W, W0)
 
     return ALPHA/2/np.pi*g
 
 def radiative_correction_o2(Z, W, R):
+    """Order alpha^2 Z radiaive correction to the beta spectrum shape
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+
+    """
     M = NUCLEON_MASS_C2/ELECTRON_MASS_C2
     L = np.sqrt(10)/R
 
@@ -103,6 +150,14 @@ def radiative_correction_o2(Z, W, R):
     return Z*ALPHA**2*(d1f+d2+d3+d01d4)
 
 def radiative_correction_o3(Z, W, W0, R):
+    """Radiative correction of order alpha^3 Z^2 to the beta spectrum shape
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param R: Nuclear charge radius in units of the electron Compton wavelength
+
+    """
     gE = 0.5772
     L = np.sqrt(10)/R
 
@@ -114,9 +169,22 @@ def radiative_correction_o3(Z, W, W0, R):
     return Z**2*ALPHA**3*(a*np.log(L/W)+b*f+4*np.pi/3*g-0.649*np.log(2*W0))
 
 def radiative_correction_L(W0):
+    """Resummed order alpha^n radiative corrections
+
+    :param W0: Electron endpoint in units of me c^2
+
+    """
     return 1.026725*(1-2*ALPHA/3/np.pi*np.log(2*W0))**2.25
 
 def radiative_correction(Z, W, W0, R):
+    """Total radiative correction up to order alpha^3 Z^2 to the beta spectrum shape
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param R: Nuclear charge radius in units of the electron Compton wavelength
+
+    """
     o1 = radiative_correction_o1(W, W0)
     o2 = radiative_correction_o2(Z, W, R)
     o3 = radiative_correction_o3(Z, W, W0, R)
@@ -126,6 +194,12 @@ def radiative_correction(Z, W, W0, R):
             *(L+o2+o3))
 
 def radiative_correction_neutrino(Wv, W0):
+    """Radiative correction to the (anti)neutrino spectrum to order alpha
+
+    :param Wv: (Anti)neutrino energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+
+    """
     r = np.ones(Wv.shape)
     mask = (Wv<W0)
 
@@ -143,6 +217,13 @@ def radiative_correction_neutrino(Wv, W0):
     return r
 
 def recoil_fermi(W, W0, A):
+    """Kinematic recoil correction to the beta spectrum shape for a Fermi transition
+
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param A: Mass number (protons + neutrons) of the nuclear state
+
+    """
     M = A*NUCLEON_MASS_C2/ELECTRON_MASS_C2
     M2 = M**2
 
@@ -160,6 +241,13 @@ def recoil_fermi(W, W0, A):
     return result
 
 def recoil_gamow_teller(W, W0, A):
+    """Kinematic recoil correction to the beta spectrum shape for a Gamow-Teller transition
+
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param A: Mass number (protons + neutrons) of the nuclear state
+
+    """
     M = A*NUCLEON_MASS_C2/ELECTRON_MASS_C2
     M2 = M**2
 
@@ -176,15 +264,31 @@ def recoil_gamow_teller(W, W0, A):
 
     return result
 
-def recoil_Coulomb_fermi(Z, W, W0, A, beta_type):
+def recoil_Coulomb_fermi(Z, W, W0, A):
+    """Coulomb-recoil correction to the beta spectrum shape for a Fermi transition
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param A: Mass number (protons + neutrons) of the nuclear state
+
+    """
     M = A*NUCLEON_MASS_C2/ELECTRON_MASS_C2
     p = np.sqrt(W**2-1)
 
     return (1
-            -beta_type*ALPHA*Z*np.pi/M/p
+            -ALPHA*Z*np.pi/M/p
             *(1+(W0-W)/(3*W)))
 
-def recoil_Coulomb_gamow_teller(Z, W, W0, A, beta_type):
+def recoil_Coulomb_gamow_teller(Z, W, W0, A):
+    """Coulomb-recoil correction to the beta spectrum shape for a Gamow-Teller transition
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param A: Mass number (protons + neutrons) of the nuclear state
+
+    """
     M = A*NUCLEON_MASS_C2/ELECTRON_MASS_C2
     p = np.sqrt(W**2-1)
 
@@ -193,6 +297,14 @@ def recoil_Coulomb_gamow_teller(Z, W, W0, A, beta_type):
             *(1-1/3*(W0-W)/(3*W)))
 
 def shape_factor_fermi(Z, W, W0, R):
+    """Nuclear shape factor for an allowed Fermi transition
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param R: Nuclear charge radius in units of the electron Compton wavelength
+
+    """
     C0 = (-233/630*(ALPHA*Z)**2
             -1/5*(W0*R)**2
             -6/35*ALPHA*Z*W0*R)
@@ -205,6 +317,21 @@ def shape_factor_fermi(Z, W, W0, R):
     return 1 + C0 + C1*W + Cm1/W + C2*W**2
 
 def shape_factor_gamow_teller(Z, W, W0, R, A, b, c, d, L):
+    """Nuclear shape factor for an allowed Gamow-Teller transition
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param R: Nuclear charge radius in units of the electron Compton wavelength
+    :param A: Mass number (protons + neutrons) for the nuclear state
+    :param b: Weak magnetism form factor at q2=0
+    :param c: Gamow-Teller form factor at q2=0
+    :param d: Induced tensor form factor at q2=0
+    :param L: Induced pseudoscalar form factor at q2=0
+
+    Form factors are in Holstein notation and that of Hayen et al., RMP 90 (2018) 015008
+
+    """
     M = A*NUCLEON_MASS_C2/ELECTRON_MASS_C2
     bt = Z/abs(Z)
 
@@ -224,7 +351,31 @@ def shape_factor_gamow_teller(Z, W, W0, R, A, b, c, d, L):
 
     return 1 + C0 + C1*W + Cm1/W + C2*W**2
 
+def shape_factor_unique_forbidden(L, W, W0, Z):
+    """Unique forbidden shape factor
+
+    :param L: int Spin change
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param Z: Proton number of the final nuclear state
+
+    """
+    C = 0.
+    pe = np.sqrt(W**2.0 - 1.)
+    pnu = W0-W
+    for k in range(1, L+1, 1):
+        C += lambda_k(W, Z, k) * pe**(2*(k-1))*pnu**(2*(L-k))/factorial(2*k-1)/factorial(2*(L-k)+1)
+    return C
+
 def atomic_screening(Z, W, R, l):
+    """Screening correction due to atomic electrons in the final state
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Elecron energy in units of me c^2
+    :param R: Nuclear charge radius in units of the electron Compton wavelength
+    :param l: Shift in electric potential at the origin due to atomic electrons
+
+    """
     beta_type = Z/abs(Z)
 
     S = np.ones(W.shape)
@@ -259,6 +410,14 @@ def atomic_screening(Z, W, R, l):
 
 
 def atomic_mismatch(Z, W, W0, A):
+    """Correction due to non-orthogonality of initial and final electronic states, resulting in shake-up and shake-off
+
+    :param Z: Proton number of the final nuclear state
+    :param W: Electron energy in units of me c^2
+    :param W0: Electron endpoint energy in units of me c^2
+    :param A: Nuclear mass number (protons + neutrons)
+
+    """
     beta_type = Z/abs(Z)
     dBdZ2 = (44.200 * np.power(Z - beta_type, 0.41)
             +2.3196e-7 * np.power(Z - beta_type, 4.45))
