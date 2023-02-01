@@ -1,2 +1,3 @@
-# BSGpy
-Python implementation of the Beta Spectrum Generator
+# THECOBS
+THE Creation Of Beta Spectra
+A python implementation of Beta Spectrum Generator

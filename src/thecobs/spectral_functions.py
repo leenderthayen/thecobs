@@ -2,9 +2,9 @@ import numpy as np
 from scipy.special import gamma, loggamma, spence
 from scipy.special import factorial, factorial2
 
-from .coulomb_functions import lambda_k
+from thecobs.coulomb_functions import lambda_k
 
-from .constants import *
+from thecobs.constants import *
 
 def phase_space(W, W0):
     """Phase space

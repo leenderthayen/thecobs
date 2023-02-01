@@ -1,10 +1,9 @@
-from context import bsgpy
-import bsgpy.spectral_functions as sf
-
-import matplotlib.pyplot as plt
-import numpy as np
+from context import bsg
+import bsg.spectral_functions as sf
 
 if __name__ == "__main__":
+    import numpy as np
+
     W0 = 3
     Z = 10
     R = 0.01
@@ -22,31 +21,38 @@ if __name__ == "__main__":
 
     E = (W-1)*0.511
 
-    plt.figure()
-    plt.plot(E, ps)
-    plt.plot(E, ps*f)
-    plt.plot(E, ps*f*rc1)
-    plt.plot(E, ps*f*rc1*rf)
-    plt.plot(E, ps*f*rc*rf*s)
-    plt.xlabel("Electron energy [MeV]")
-    plt.ylabel("Spectrum [arb.u.]")
+    try:
+        import matplotlib.pyplot as plt
 
-    plt.figure()
+        plt.figure()
+        plt.plot(E, ps)
+        plt.plot(E, ps*f)
+        plt.plot(E, ps*f*rc1)
+        plt.plot(E, ps*f*rc1*rf)
+        plt.plot(E, ps*f*rc*rf*s)
+        plt.xlabel("Electron energy [MeV]")
+        plt.ylabel("Spectrum [arb.u.]")
+
+        plt.figure()
 #    plt.plot(E, f, label="Fermi function")
-    plt.plot(E, s, label="Screening")
-    plt.plot(E, rc, label=r"Radiative correction O($\alpha^3Z^2$)")
-    plt.legend(loc=0)
-    plt.xlabel("Electron energy [MeV]")
-    plt.ylabel("Spectral correction factor")
+        plt.plot(E, s, label="Screening")
+        plt.plot(E, rc, label=r"Radiative correction O($\alpha^3Z^2$)")
+        plt.legend(loc=0)
+        plt.xlabel("Electron energy [MeV]")
+        plt.ylabel("Spectral correction factor")
 
-    plt.figure()
-    plt.plot(W, s)
+        plt.figure()
+        plt.plot(W, s)
 
-    plt.figure()
-    plt.plot(W, rc1)
-    plt.plot(W, rc)
+        plt.figure()
+        plt.plot(W, rc1)
+        plt.plot(W, rc)
 
-    plt.figure()
-    plt.plot(W, rf)
+        plt.figure()
+        plt.plot(W, rf)
 
-    plt.show(block=True)
+        plt.show(block=True)
+    except:
+        pass
+
+    print("Done!")

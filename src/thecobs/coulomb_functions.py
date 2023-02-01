@@ -2,6 +2,8 @@ import numpy as np
 from scipy.special import factorial, factorial2
 from scipy.special import gamma as sciGamma
 
+from thecobs.constants import *
+
 def generalizedFermiFunction(W, Z, R, k):
     """Implementation of the generalized Fermi function F_{k-1} according to Behrens et al.
 
