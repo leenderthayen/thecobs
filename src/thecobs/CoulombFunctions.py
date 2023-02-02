@@ -2,7 +2,10 @@ import numpy as np
 from scipy.special import factorial, factorial2
 from scipy.special import gamma as sciGamma
 
-from thecobs.constants import *
+from thecobs.Constants import *
+
+def gamma_k(k, Z):
+    return (k*k-(ALPHA*Z)**2)**0.5
 
 def generalizedFermiFunction(W, Z, R, k):
     """Implementation of the generalized Fermi function F_{k-1} according to Behrens et al.
@@ -15,22 +18,21 @@ def generalizedFermiFunction(W, Z, R, k):
     """
     p = np.sqrt(W**2.0-1.)
     y = ALPHA*Z*W/p
-    gammak = np.sqrt(k**2.0-(ALPHA*Z)**2.0)
-    prefactor = (k*factorial2(2*k-1))**2.0*4**k*(2*p*R)**(2.*(gammak-k))*np.exp(np.pi*y)
-    gammas = (np.absolute(sciGamma(gammak+y*1j))/sciGamma(1+2.*gammak))**2.0
+    gk = gamma_k(k, Z)
+    prefactor = (k*factorial2(2*k-1))**2.0*4**k*(2*p*R)**(2.*(gk-k))*np.exp(np.pi*y)
+    gammas = (np.absolute(sciGamma(gk+y*1j))/sciGamma(1+2.*gk))**2.0
     return prefactor*gammas
 
-def lambda_2(W, Z):
+def lambda_2(W, Z, R):
     p = np.sqrt(W**2.0-1.)
     y = ALPHA*Z*W/p
-    gamma2 = np.sqrt(4-(ALPHA*Z)**2.0)
-    gamma1 = np.sqrt(1-(ALPHA*Z)**2.0)
-    R = 1.2e-15*(2.5*Z)**(1./3.)/NATURALLENGTH
-    prefactor = (2+gamma2)/2/(1+gamma1)/(1+(ALPHA*Z)**2.0/12*(11.577216))
-    kinematic = (2*p*R)**(2*(gamma2-gamma1-1))*(np.absolute(sciGamma(gamma2+y*1j))/np.absolute(sciGamma(gamma1+y*1j)))**2.0
+    g2 = gamma_k(2, Z)
+    g1 = gamma_k(1, Z)
+    prefactor = (2+g2)/2/(1+g1)/(1+(ALPHA*Z)**2.0/12*(11.577216))
+    kinematic = (2*p*R)**(2*(g2-g1-1))*(np.absolute(sciGamma(g2+y*1j))/np.absolute(sciGamma(g1+y*1j)))**2.0
     return prefactor*kinematic
 
-def lambda_k(W, Z, k):
+def lambda_k(W, Z, R, k):
     """Coulomb function $\lambda_k$ as per Behrens et al.
 
     :param W: Total electron energy in units of its rest mass
@@ -38,11 +40,9 @@ def lambda_k(W, Z, k):
     :param k: absolute value of kappa
 
     """
-    #return 1.
-    gammak = np.sqrt(k**2.0-(ALPHA*Z)**2.0)
-    gamma1 = np.sqrt(1.-(ALPHA*Z)**2.0)
-    R = 1.2e-15*(2.5*Z)**(1./3.)/NATURALLENGTH
-    return generalizedFermiFunction(W, Z, R, k)/generalizedFermiFunction(W, Z, R, 1)*(k+gammak)/(k*(1+gamma1))
+    gk = gamma_k(k, Z)
+    g1 = gamma_k(1, Z)
+    return generalizedFermiFunction(W, Z, R, k)/generalizedFermiFunction(W, Z, R, 1)*(k+gk)/(k*(1+g1))
 
 def calcQ_k(k, Z, W, beta):
     """Calculate the Q screening ratio according to Buehring (1984)
@@ -53,11 +53,11 @@ def calcQ_k(k, Z, W, beta):
     :param beta: screening exponent at r=0
 
     """
-    gamma_k = sqrt(k * k - (ALPHA * Z) ** 2.0)
+    gk = gamma_k(k, Z)
 
-    up = (ALPHA * Z) ** 2.0 * calcN2(-k, Z, W, beta) + (k + gamma_k) ** 2.0 * calcN2(k, Z, W, beta)
+    up = (ALPHA * Z) ** 2.0 * calcN2(-k, Z, W, beta) + (k + gk) ** 2.0 * calcN2(k, Z, W, beta)
 
-    down = (ALPHA * Z) ** 2.0 * calcNCoul2(-k, Z, W) + (k + gamma_k) ** 2.0 * calcNCoul2(k, Z, W)
+    down = (ALPHA * Z) ** 2.0 * calcNCoul2(-k, Z, W) + (k + gk) ** 2.0 * calcNCoul2(k, Z, W)
 
     return up / down
 
@@ -85,18 +85,18 @@ def calcN2(kappa, Z, W, beta):
     P = p / beta
     Pt = pt / beta
 
-    gamma_k = sqrt(k * k - (ALPHA * Z) ** 2.0)
+    gk = gamma_k(k, Z)
 
     yt = ALPHA * Z * Wt / pt
 
-    term1 = 0.5 * ((kappa - gamma_k) * (kappa * Wt - gamma_k) + 0.5 * (gamma_k / kappa) * (kappat - kappa) ** 2.0)
+    term1 = 0.5 * ((kappa - gk) * (kappa * Wt - gk) + 0.5 * (gk / kappa) * (kappat - kappa) ** 2.0)
     R_ab = 1.0
     if (kappa > 0):
         R_ab += 0.25 * k ** 2.0 * (beta / p) ** 2.0
 
     c1 = 1.0 + 2.0 * gamma_k
-    c2 = gamma_k + yt * (1j)
-    c3 = gamma_k + 2.0 * Pt * (1j)
+    c2 = gk + yt * (1j)
+    c3 = gk + 2.0 * Pt * (1j)
     c4 = k + 2.0 * P * (1j)
 
     Gc1 = fabs(gamma(c1))
@@ -118,7 +118,7 @@ def calcN2(kappa, Z, W, beta):
 
     rap = rap1 * rap2
 
-    term5 = beta ** (2.0 * gamma_k - 2.0 * k) * (2.0 * p) ** (2.0 * k - 1.0)
+    term5 = beta ** (2.0 * gk - 2.0 * k) * (2.0 * p) ** (2.0 * k - 1.0)
 
     return term1 * (rap / R_ab) * term5 + 0.0 * 1j
 
@@ -131,19 +131,17 @@ def calcNCoul2(kappa, Z, W):
     :param W: Total electron energy in units of its rest mass
 
     """
-    ALPHA = 1.0 / 137.0
-
     k = abs(kappa)
 
-    gamma_k = sqrt(k * k - (ALPHA * Z) ** 2.0)
+    gk = gamma_k(k, Z)
 
     p = sqrt(W ** 2.0 - 1.0)
 
     y = ALPHA * Z * W / p
 
-    return 0.5 * (kappa - gamma_k) * (kappa * W - gamma_k) * (gamma(1.0 + 2.0 * gamma_k)) ** (-2.0) * (
-        np.absolute(gamma(gamma_k + y * 1j))) ** 2.0 * exp(pi * y) * (2.0 * p) ** (
-                       2.0 * gamma_k - 1.0) + 0.0 * 1j
+    return 0.5 * (kappa - gk) * (kappa * W - gk) * (gamma(1.0 + 2.0 * gk)) ** (-2.0) * (
+        np.absolute(gamma(gk + y * 1j))) ** 2.0 * exp(pi * y) * (2.0 * p) ** (
+                       2.0 * gk - 1.0) + 0.0 * 1j
 
 def calcLambda_k_scr(k, Z, W, beta):
     """Calculate the screening correction to the $\lambda_k$ Coulomb function
