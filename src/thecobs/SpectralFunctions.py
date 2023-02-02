@@ -382,7 +382,7 @@ def atomic_screening(W, Z, R, l, **kwargs):
     Wt = W - beta_type * 0.5 * ALPHA * (abs(Z)-beta_type)*l
 
     pt = (0.5*p
-            +0.5*np.sqrt(p**2-beta_type*2*ALPHA*Z*Wt*l+0.j))
+            +0.5*np.sqrt(p**2-beta_type*2*ALPHA*abs(Z)*Wt*l+0.j))
 
     y = ALPHA*Z*W/p
     yt = ALPHA*Z*Wt/pt
