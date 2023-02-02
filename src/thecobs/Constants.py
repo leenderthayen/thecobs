@@ -12,7 +12,7 @@ NUCLEON_MASS_EV = (constants.m_p+constants.m_n)/2.0/constants.eV*constants.speed
 NUCLEON_MASS_KEV = NUCLEON_MASS_EV/1E3
 NUCLEON_MASS_W = NUCLEON_MASS_EV/(1.0*ELECTRON_MASS_EV)
 PROTON_MASS_W = PROTON_MASS_EV/(1.0*ELECTRON_MASS_EV)
-AMU_MASS_KEV = constants.physical_constants['atomic mass constant energy equivalent in MeV']*1E3
+AMU_MASS_KEV = constants.physical_constants['atomic mass constant energy equivalent in MeV'][0]*1E3
 NATURAL_LENGTH = (constants.hbar*constants.speed_of_light/constants.e)/ELECTRON_MASS_EV
 ALPHA = constants.alpha
 
