@@ -5,6 +5,7 @@ from scipy.special import factorial, factorial2
 from thecobs.CoulombFunctions import lambda_k
 
 from thecobs.Constants import *
+from thecobs.FiniteSize import *
 
 def phase_space(W, W0, **kwargs):
     """Phase space
@@ -51,10 +52,26 @@ def finite_size_L0(W, Z, R, **kwargs):
     :param R: Nuclear radius in units of the electron Compton wavelength
 
     """
-    return (1
-            -ALPHA*Z*W*R
+    gamma = (1-(ALPHA*Z)**2)**0.5
+    aNeg, aPos = getL0Constants(Z)
+    s = 0
+    common = 0
+    specific = 0
+    for i in range(1, 7):
+        if Z < 0:
+            s += aPos[i] * (W*R)**(i-1)
+        else:
+            s += aNeg[i] * (W*R)**(i-1)
+    common= (1
+            -ALPHA*Z*W*R*(41-26*gamma)/15./(2*gamma-1)
             +13/60*(ALPHA*Z)**2
-            -ALPHA*Z*R/W)
+            -ALPHA*Z*R/W*gamma*(17-2*gamma)/30/(2*gamma-1)
+            +s)
+    if Z < 0:
+        specific = aPos[0] * R / W + 0.22 * (R - 0.0164) * (ALPHA * Z)** 4.5
+    else:
+        specific = aNeg[0] * R / W + 0.41 * (R - 0.0164) * (ALPHA * Z)** 4.5
+    return (common + specific) * 2. / (1. + gamma)
 
 def finite_size_U_fermi(W, Z, **kwargs):
     """Higher-order electrostatic finite size correction
@@ -426,3 +443,20 @@ def atomic_mismatch(W, Z, W0, A, **kwargs):
             *((0.5 + l * l) / (1 + l * l) - l * np.arctan(1 / l)) / psi2)
 
     return 1 - 2 / (W0 - W) * (0.5 * dBdZ2 + 2 * (C0 + C1))
+
+def atomic_exchange(W, exPars):
+    E = W - 1
+
+    return 1 + exPars[0] / E + exPars[1] / E / E +
+           exPars[2] * np.exp(-exPars[3] * E) +
+           exPars[4] * np.sin((W - exPars[6])**exPars[5] + exPars[7]) /
+           W**exPars[8]
+
+def atomic_exchange_simkovic(W, exPars):
+    '''Exchange correction due to Simkovic et al., https://journals.aps.org/prc/pdf/10.1103/PhysRevC.107.025501
+    Equation (34)
+    '''
+    x = (W-1)*ELECTRON_MASS_KEV
+    a, b, c, d, e = exPars
+
+    return (a+b*x**c)*np.exp(-d*x**e)
