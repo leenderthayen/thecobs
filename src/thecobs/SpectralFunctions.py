@@ -447,10 +447,10 @@ def atomic_mismatch(W, Z, W0, A, **kwargs):
 def atomic_exchange(W, exPars):
     E = W - 1
 
-    return 1 + exPars[0] / E + exPars[1] / E / E +
+    return (1 + exPars[0] / E + exPars[1] / E / E +
            exPars[2] * np.exp(-exPars[3] * E) +
            exPars[4] * np.sin((W - exPars[6])**exPars[5] + exPars[7]) /
-           W**exPars[8]
+           W**exPars[8])
 
 def atomic_exchange_simkovic(W, exPars):
     '''Exchange correction due to Simkovic et al., https://journals.aps.org/prc/pdf/10.1103/PhysRevC.107.025501
