@@ -379,7 +379,7 @@ def shape_factor_unique_forbidden(W, L, W0, Z, R, **kwargs):
     L = abs(L)
     for k in range(1, L+1, 1):
         C += lambda_k(W, Z, R, k) * pe**(2*(k-1))*pnu**(2*(L-k))/factorial(2*k-1)/factorial(2*(L-k)+1)
-    return C
+    return factorial(2*L-1)*C
 
 def atomic_screening(W, Z, R, l, **kwargs):
     """Screening correction due to atomic electrons in the final state
