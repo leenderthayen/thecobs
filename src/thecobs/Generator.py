@@ -7,7 +7,7 @@ from thecobs.SpectralFunctions import *
 from thecobs.Constants import *
 
 def getExchangeParams(Z):
-    with resources.open_text("data", "ExchangeData.dat") as fid:
+    with resources.open_text("thecobs.data", "ExchangeData.dat") as fid:
         data = np.genfromtxt(fid)
         index = np.where(data[:, 0] == Z)
 
