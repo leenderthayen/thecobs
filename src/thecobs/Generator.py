@@ -1,18 +1,17 @@
 import pandas as pd
 import numpy as np
-import os
+
+from importlib import resources
 
 from thecobs.SpectralFunctions import *
 from thecobs.Constants import *
 
 def getExchangeParams(Z):
-    package_directory = os.path.dirname(os.path.abspath(__file__))
-    filename = os.path.join(package_directory, '../../data', 'ExchangeData.dat')
-    data = np.genfromtxt(filename)
+    with resources.open_text("data", "ExchangeData.dat") as fid:
+        data = np.genfromtxt(fid)
+        index = np.where(data[:, 0] == Z)
 
-    index = np.where(data[:, 0] == Z)
-
-    return data[index, 1:]
+        return data[index, 1:]
 
 def calculateSpectrum(E, params):
     W = 1 + E/ELECTRON_MASS_KEV
