@@ -96,7 +96,7 @@ def getL0Constants(Z):
         aPos[i] = 0
         aNeg[i] = 0
         for j in range(6):
-            aNeg[i] += bNeg[i, j] * (ALPHA*Z)**(j+1)
-            aPos[i] ++ bPos[i, j] * (ALPHA*Z)**(j+1)
+            aNeg[i] += bNeg[i, j] * (ALPHA*abs(Z))**(j+1)
+            aPos[i] += bPos[i, j] * (ALPHA*abs(Z))**(j+1)
 
     return aNeg, aPos

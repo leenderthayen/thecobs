@@ -52,7 +52,7 @@ def finite_size_L0(W, Z, R, **kwargs):
     :param R: Nuclear radius in units of the electron Compton wavelength
 
     """
-    gamma = (1-(ALPHA*Z)**2)**0.5
+    g = (1-(ALPHA*Z)**2)**0.5
     aNeg, aPos = getL0Constants(Z)
     s = 0
     common = 0
@@ -63,12 +63,12 @@ def finite_size_L0(W, Z, R, **kwargs):
         else:
             s += aNeg[i] * (W*R)**(i-1)
     common= (1
-            -ALPHA*Z*W*R*(41-26*gamma)/15./(2*gamma-1)
+            -ALPHA*Z*W*R*(41-26*g)/15./(2*g-1)
             +13/60*(ALPHA*Z)**2
-            -ALPHA*Z*R/W*gamma*(17-2*gamma)/30/(2*gamma-1)
+            -ALPHA*Z*R/W*g*(17-2*g)/30/(2*g-1)
             +s)
     if Z < 0:
-        specific = aPos[0] * R / W + 0.22 * (R - 0.0164) * (ALPHA * Z)** 4.5
+        specific = aPos[0] * R / W + 0.22 * (R - 0.0164) * (ALPHA * abs(Z))** 4.5
     else:
         specific = aNeg[0] * R / W + 0.41 * (R - 0.0164) * (ALPHA * Z)** 4.5
     return (common + specific) * 2. / (1. + gamma)
