@@ -459,4 +459,4 @@ def atomic_exchange_simkovic(W, exPars):
     x = (W-1)*ELECTRON_MASS_KEV
     a, b, c, d, e = exPars
 
-    return (a+b*x**c)*np.exp(-d*x**e)
+    return 1. + (a+b*x**c)*np.exp(-d*x**e)
