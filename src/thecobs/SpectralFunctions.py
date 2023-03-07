@@ -71,7 +71,7 @@ def finite_size_L0(W, Z, R, **kwargs):
         specific = aPos[0] * R / W + 0.22 * (R - 0.0164) * (ALPHA * abs(Z))** 4.5
     else:
         specific = aNeg[0] * R / W + 0.41 * (R - 0.0164) * (ALPHA * Z)** 4.5
-    return (common + specific) * 2. / (1. + gamma)
+    return (common + specific) * 2. / (1. + g)
 
 def finite_size_U_fermi(W, Z, **kwargs):
     """Higher-order electrostatic finite size correction
