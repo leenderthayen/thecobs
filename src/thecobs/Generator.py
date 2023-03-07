@@ -11,7 +11,14 @@ def getExchangeParams(Z):
         data = np.genfromtxt(fid)
         index = np.where(data[:, 0] == Z)
 
-        return data[index, 1:]
+        return data[index, 1:][0, 0]
+
+def getExchangeParamsSimkovic(Z):
+    with resources.open_text("thecobs.data", "ExchangeDataSimkovic.dat") as fid:
+        data = np.genfromtxt(fid)
+        index = np.where(data[:, 0] == Z)
+
+        return data[index, 1:][0, 0]
 
 def calculateSpectrum(E, params):
     W = 1 + E/ELECTRON_MASS_KEV
