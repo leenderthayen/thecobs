@@ -110,7 +110,7 @@ def sirlin_g(W, W0, **kwargs):
         -3./4.
         +4./beta*(-1*spence(1-(2*beta/(1+beta))))
         +4*(np.arctanh(beta)/beta-1)*((W0-W)/(3*W)-3/2+np.log(2*(W0-W)))
-        +np.arctanh(beta)/beta*(2*(1+beta**2)+(W0-W)**2/(6*W**2)))
+        +np.arctanh(beta)/beta*(2*(1+beta**2)+(W0-W)**2/(6*W**2)-4*np.arctanh(beta)))
 
     return g
 
@@ -159,7 +159,7 @@ def radiative_correction_o2(W, Z, R, **kwargs):
             +np.pi**2/6
             -6*np.log(2))
 
-    return abs(Z)*ALPHA**2*(d1f+d2+d3+d01d4)
+    return -Z*ALPHA**2*(d1f+d2+d3+d01d4)
 
 def radiative_correction_o3(W, Z, W0, R, **kwargs):
     """Radiative correction of order alpha^3 Z^2 to the beta spectrum shape
@@ -405,7 +405,7 @@ def atomic_screening(W, Z, R, l, **kwargs):
     yt = ALPHA*Z*Wt/pt
     g = np.sqrt(1-(ALPHA*Z)**2)
 
-    S = (np.abs(gamma(g+1.j*yt)/gamma(g+1.j*y))**2
+    S = (Wt/W*np.abs(gamma(g+1.j*yt)/gamma(g+1.j*y))**2
             *np.abs(np.exp(loggamma(g+2.j*pt/l)-loggamma(1+2.j*p/l)))**2
             #*np.abs(gamma(g+1.j*2*pt/l))**2/np.abs(gamma(1+1.j*2*p/l))**2
             *np.exp(-np.pi*y)
