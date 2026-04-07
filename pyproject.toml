@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "thecobs"
-version = "0.0.22"
+version = "0.0.23"
 authors = [
   { name = "Leendert Hayen", email="leendert.hayen@gmail.com"},
 ]
@@ -18,8 +18,8 @@ classifiers = [
 ]
 dependencies = [
   "numpy>=1.24.1",
-  "scipy~=1.10.0",
-  "pandas~=1.5.3",
+  "scipy>=1.10.0",
+  "pandas>=1.5.3",
 ]
 
 [project.urls]
